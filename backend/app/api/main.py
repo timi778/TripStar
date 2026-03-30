@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from ..config import get_settings, validate_config, print_config
+from ..services.unsplash_service import close_unsplash_service
 from .routes import trip, poi, map as map_routes, chat
 
 # 获取配置
@@ -65,6 +66,7 @@ async def startup_event():
 @app.on_event("shutdown")
 async def shutdown_event():
     """应用关闭事件"""
+    await close_unsplash_service()
     print("\n" + "="*60)
     print("👋 应用正在关闭...")
     print("="*60 + "\n")
@@ -121,4 +123,3 @@ if __name__ == "__main__":
         port=settings.port,
         reload=True
     )
-
