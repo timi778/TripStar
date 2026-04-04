@@ -19,6 +19,42 @@ class XHSCookieExpiredError(Exception):
     """小红书 Cookie 过期致命异常，用于向前端报警"""
     pass
 
+def normalize_xhs_cookie(cookie: str) -> str:
+    """兼容 Cookie 请求头字符串和浏览器导出的 JSON Cookie 列表。"""
+    normalized = cookie.strip()
+    if not normalized:
+        return normalized
+
+    if len(normalized) >= 2 and normalized[0] == normalized[-1] and normalized[0] in {"'", '"'}:
+        normalized = normalized[1:-1].strip()
+
+    cookie_items = None
+    if normalized.startswith("[") and normalized.endswith("]"):
+        try:
+            cookie_items = json.loads(normalized)
+        except json.JSONDecodeError:
+            cookie_items = None
+    elif normalized.startswith("{") and '"name"' in normalized and '"value"' in normalized:
+        try:
+            cookie_items = json.loads(f"[{normalized}]")
+        except json.JSONDecodeError:
+            cookie_items = None
+
+    if isinstance(cookie_items, list):
+        pairs = []
+        for item in cookie_items:
+            if not isinstance(item, dict):
+                continue
+            name = str(item.get("name", "")).strip()
+            value = str(item.get("value", "")).strip()
+            if name:
+                pairs.append(f"{name}={value}")
+        if pairs:
+            print("已将 JSON 格式的小红书 Cookie 转换为请求头字符串格式。")
+            return "; ".join(pairs)
+
+    return normalized
+
 def get_xhs_client() -> XhsClient:
     """初始化并验证小红书客户端"""
     settings = get_settings()
@@ -28,8 +64,8 @@ def get_xhs_client() -> XhsClient:
         # 添加一个空白签名函数以避免 xhs 包在没有设置签名函数时抛出 NoneType object is not callable
         def dummy_sign(uri, data=None, a1="", web_session=""):
             return {"x-s": "", "x-t": ""}
-        
-        client = XhsClient(settings.xhs_cookie, sign=dummy_sign)
+
+        client = XhsClient(normalize_xhs_cookie(settings.xhs_cookie), sign=dummy_sign)
         # 简单测试一下客户端有效性（调用不敏感的接口）
         return client
     except Exception as e:
