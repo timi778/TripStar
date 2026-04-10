@@ -32,6 +32,32 @@
     "generateTripPlanFailed": "旅行プランの生成に失敗しました",
     "healthCheckFailed": "ヘルスチェックに失敗しました"
   },
+  "settings": {
+    "open": "設定を開く",
+    "title": "設定",
+    "saveApply": "保存して適用",
+    "cancel": "キャンセル",
+    "labels": {
+      "apiBaseUrl": "バックエンド URL",
+      "amapJsKey": "AMap JS Key",
+      "amapWebKey": "AMap Web Service Key",
+      "openaiBaseUrl": "OpenAI 格式 Base URL",
+      "openaiModel": "OpenAI 格式 Model",
+      "openaiApiKey": "OpenAI 格式 API Key",
+      "xhsCookie": "小紅書 Cookie"
+    },
+    "placeholders": {
+      "apiBaseUrl": "例: http://localhost:8000",
+      "openaiBaseUrl": "例: https://api.openai.com/v1",
+      "openaiModel": "例: gpt-4o-mini",
+      "xhsCookie": "Cookie 文字列を貼り付け"
+    },
+    "messages": {
+      "loadFailed": "設定の読み込みに失敗しました",
+      "saveFailed": "設定の保存に失敗しました",
+      "saved": "設定を保存して適用しました"
+    }
+  },
   "home": {
     "heroBadge": "AI 旅行プランニングエンジン",
     "titleLine": "世界を巡るあらゆる可能性へ",

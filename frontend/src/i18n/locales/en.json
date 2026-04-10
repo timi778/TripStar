@@ -32,6 +32,32 @@
     "generateTripPlanFailed": "Failed to generate trip plan",
     "healthCheckFailed": "Health check failed"
   },
+  "settings": {
+    "open": "Open Settings",
+    "title": "Runtime Settings",
+    "saveApply": "Save & Apply",
+    "cancel": "Cancel",
+    "labels": {
+      "apiBaseUrl": "Backend URL",
+      "amapJsKey": "AMap JS Key",
+      "amapWebKey": "AMap Web Service Key",
+      "openaiBaseUrl": "OpenAI-Compatible Base URL",
+      "openaiModel": "OpenAI-Compatible Model",
+      "openaiApiKey": "OpenAI-Compatible API Key",
+      "xhsCookie": "Xiaohongshu Cookie"
+    },
+    "placeholders": {
+      "apiBaseUrl": "e.g. http://localhost:8000",
+      "openaiBaseUrl": "e.g. https://api.openai.com/v1",
+      "openaiModel": "e.g. gpt-4o-mini",
+      "xhsCookie": "Paste full cookie string"
+    },
+    "messages": {
+      "loadFailed": "Failed to load settings",
+      "saveFailed": "Failed to save settings",
+      "saved": "Settings saved and applied"
+    }
+  },
   "home": {
     "heroBadge": "AI Intelligent Itinerary Engine",
     "titleLine": "Unlock Every Possibility",

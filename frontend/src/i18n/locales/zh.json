@@ -32,6 +32,32 @@
     "generateTripPlanFailed": "生成旅行计划失败",
     "healthCheckFailed": "健康检查失败"
   },
+  "settings": {
+    "open": "打开配置",
+    "title": "配置",
+    "saveApply": "保存并应用",
+    "cancel": "取消",
+    "labels": {
+      "apiBaseUrl": "后端地址",
+      "amapJsKey": "高德地图 JS Key",
+      "amapWebKey": "高德地图 Web Service Key",
+      "openaiBaseUrl": "OpenAI 兼容格式 Base URL",
+      "openaiModel": "OpenAI 兼容格式 Model",
+      "openaiApiKey": "OpenAI 兼容格式 API Key",
+      "xhsCookie": "小红书 Cookie"
+    },
+    "placeholders": {
+      "apiBaseUrl": "例如：http://localhost:8000",
+      "openaiBaseUrl": "例如：https://api.openai.com/v1",
+      "openaiModel": "例如：gpt-4o-mini",
+      "xhsCookie": "粘贴完整 Cookie 字符串"
+    },
+    "messages": {
+      "loadFailed": "读取设置失败",
+      "saveFailed": "保存设置失败",
+      "saved": "设置已保存并应用"
+    }
+  },
   "home": {
     "heroBadge": "AI 智能行程规划引擎",
     "titleLine": "探索世界的每一种可能",
