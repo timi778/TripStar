@@ -107,6 +107,15 @@
     "specialNeedsPlaceholder": "特別な要望を入力してください（例：高齢者同行、日の出を見たい、花粉アレルギーなど）",
     "submit": "旅程を作成する",
     "submitting": "AI がプランを作成中…",
+    "history": {
+      "eyebrow": "最近保存",
+      "title": "履歴プラン",
+      "refresh": "更新",
+      "open": "詳細を見る",
+      "empty": "保存済みのプランはありません",
+      "updatedAt": "更新",
+      "loadFailed": "履歴プランの読み込みに失敗しました"
+    },
     "loading": {
       "initializing": "初期化中...",
       "searchingAttractions": "観光地を検索中...",

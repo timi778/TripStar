@@ -107,6 +107,15 @@
     "specialNeedsPlaceholder": "告诉我你的特殊需求，比如：带老人出行、想看日出、对花粉过敏……",
     "submit": "开始规划旅程",
     "submitting": "AI 正在规划中…",
+    "history": {
+      "eyebrow": "最近保存",
+      "title": "历史计划",
+      "refresh": "刷新",
+      "open": "查看详情",
+      "empty": "暂无历史计划",
+      "updatedAt": "更新于",
+      "loadFailed": "读取历史计划失败"
+    },
     "loading": {
       "initializing": "正在初始化...",
       "searchingAttractions": "正在搜索景点...",

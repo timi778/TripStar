@@ -3,6 +3,7 @@ import type {
   BackendRuntimeSettings,
   RuntimeSettings,
   TripFormData,
+  TripHistoryItem,
   TripPlanResponse,
   TripTaskEvent,
 } from '@/types'
@@ -51,6 +52,10 @@ interface RuntimeSettingsApiResponse {
   success: boolean
   message?: string
   data?: Partial<BackendRuntimeSettings>
+}
+
+interface TripHistoryResponse {
+  items?: TripHistoryItem[]
 }
 
 export const getRuntimeApiBaseUrl = (): string => {
@@ -230,6 +235,18 @@ export async function pollTaskStatus(taskId: string): Promise<any> {
     return response.data
   } catch (error: any) {
     console.error('查询任务状态失败:', error)
+    throw new Error(error.response?.data?.detail || error.message || t('api.queryTaskStatusFailed'))
+  }
+}
+
+export async function getTripHistory(limit = 8): Promise<TripHistoryItem[]> {
+  try {
+    const response = await apiClient.get<TripHistoryResponse>('/api/trip/history', {
+      params: { limit },
+    })
+    return Array.isArray(response.data?.items) ? response.data.items : []
+  } catch (error: any) {
+    console.error('查询历史计划失败:', error)
     throw new Error(error.response?.data?.detail || error.message || t('api.queryTaskStatusFailed'))
   }
 }

@@ -581,10 +581,11 @@ import { EffectCoverflow, Keyboard, Mousewheel } from 'swiper/modules'
 import NavBar from '@/components/NavBar.vue'
 import OverviewAttractionCard from '@/components/OverviewAttractionCard.vue'
 import AIChat from '@/components/AIChat.vue'
-import type { TripPlan, KnowledgeGraphData, GraphCategory, Attraction, Meal, Hotel, WeatherInfo } from '@/types'
+import type { TripPlan, TripPlanResponse, KnowledgeGraphData, GraphCategory, Attraction, Meal, Hotel, WeatherInfo } from '@/types'
 import {
   getRuntimeApiBaseUrl,
   getRuntimeMapJsKey,
+  pollTaskStatus,
   RUNTIME_SETTINGS_UPDATED_EVENT,
 } from '@/services/api'
 
@@ -895,6 +896,47 @@ const graphCategories = ref<GraphCategory[]>([])
 let kgChart: echarts.ECharts | null = null
 let kgResizeHandler: (() => void) | null = null
 
+const applyTripPlanPayload = async (payload: {
+  plan: TripPlan
+  graph?: KnowledgeGraphData | null
+  planId?: string
+}) => {
+  tripPlan.value = payload.plan
+  pendingBudgetItems.value = []
+
+  if (payload.planId) {
+    planId.value = payload.planId
+    sessionStorage.setItem('planId', payload.planId)
+  }
+
+  sessionStorage.setItem('tripPlan', JSON.stringify(payload.plan))
+
+  if (payload.graph) {
+    graphData.value = payload.graph
+    graphCategories.value = payload.graph.categories || []
+    sessionStorage.setItem('graphData', JSON.stringify(payload.graph))
+  } else {
+    graphData.value = null
+    graphCategories.value = []
+    sessionStorage.removeItem('graphData')
+  }
+
+  await loadAttractionPhotos()
+  if (activeSection.value === 'map') await ensureMapReady()
+  if (activeSection.value === 'knowledge-graph') await ensureGraphReady()
+  if (activeSection.value === 'overview') await initOverviewSwiper()
+}
+
+const restoreTripPlanFromResponse = async (response?: TripPlanResponse | null) => {
+  if (!response?.data) return false
+  await applyTripPlanPayload({
+    plan: response.data,
+    graph: response.graph_data || null,
+    planId: String(response.plan_id || planId.value || ''),
+  })
+  return true
+}
+
 const ensureMapReady = async () => {
   await nextTick()
   if (!map) {
@@ -1160,26 +1202,39 @@ onMounted(async () => {
   if (typeof window !== 'undefined') {
     window.addEventListener(RUNTIME_SETTINGS_UPDATED_EVENT, handleRuntimeSettingsUpdated)
   }
-  planId.value = String(route.query.plan_id || sessionStorage.getItem('planId') || '')
+  const storedPlanId = String(sessionStorage.getItem('planId') || '')
+  planId.value = String(route.query.plan_id || storedPlanId || '')
   if (planId.value) {
     sessionStorage.setItem('planId', planId.value)
   }
 
+  const cachedPlanId = storedPlanId
   const data = sessionStorage.getItem('tripPlan')
-  if (data) {
-    tripPlan.value = JSON.parse(data)
-    pendingBudgetItems.value = []
-    // 加载景点图片
-    await loadAttractionPhotos()
-    // 加载知识图谱
+  const canUseCachedData = Boolean(data) && (!planId.value || !cachedPlanId || cachedPlanId === planId.value)
+
+  if (data && canUseCachedData) {
     const gd = sessionStorage.getItem('graphData')
-    if (gd) {
-      graphData.value = JSON.parse(gd)
-      graphCategories.value = graphData.value?.categories || []
+    await applyTripPlanPayload({
+      plan: JSON.parse(data),
+      graph: gd ? JSON.parse(gd) : null,
+      planId: planId.value || cachedPlanId,
+    })
+    return
+  }
+
+  if (planId.value) {
+    try {
+      const task = await pollTaskStatus(planId.value)
+      if (task?.status === 'completed' && task.result) {
+        const restored = await restoreTripPlanFromResponse(task.result)
+        if (restored) return
+      }
+      if (task?.status === 'failed') {
+        message.error(task.error || t('result.noTripPlanDesc'))
+      }
+    } catch (error) {
+      console.error('结果页从后端回补旅行计划失败:', error)
     }
-    if (activeSection.value === 'map') await ensureMapReady()
-    if (activeSection.value === 'knowledge-graph') await ensureGraphReady()
-    if (activeSection.value === 'overview') await initOverviewSwiper()
   }
 })
 

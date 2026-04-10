@@ -107,6 +107,15 @@
     "specialNeedsPlaceholder": "Tell me your special needs, e.g. traveling with seniors, want to see sunrise, pollen allergy...",
     "submit": "Start Planning",
     "submitting": "AI is planning...",
+    "history": {
+      "eyebrow": "Recently Saved",
+      "title": "Plan History",
+      "refresh": "Refresh",
+      "open": "Open",
+      "empty": "No saved plans yet",
+      "updatedAt": "Updated",
+      "loadFailed": "Failed to load plan history"
+    },
     "loading": {
       "initializing": "Initializing...",
       "searchingAttractions": "Searching attractions...",

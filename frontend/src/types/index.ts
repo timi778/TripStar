@@ -95,6 +95,17 @@ export interface TripPlanResponse {
   graph_data?: KnowledgeGraphData
 }
 
+export interface TripHistoryItem {
+  plan_id: string
+  task_id: string
+  city: string
+  start_date: string
+  end_date: string
+  travel_days: number
+  updated_at: string
+  overall_suggestions?: string
+}
+
 export type TripTaskStatus = 'processing' | 'completed' | 'failed'
 
 export type TripTaskStage =

@@ -228,6 +228,48 @@
         </div>
       </div>
     </section>
+
+    <section class="history-section">
+      <div class="history-panel">
+        <div class="history-head">
+          <div>
+            <p class="history-eyebrow">{{ t('home.history.eyebrow') }}</p>
+            <h3 class="history-title">{{ t('home.history.title') }}</h3>
+          </div>
+          <a-button type="link" class="history-refresh" @click="loadHistoryPlans">
+            {{ t('home.history.refresh') }}
+          </a-button>
+        </div>
+
+        <div v-if="historyLoading" class="history-loading">
+          {{ t('common.loading') }}
+        </div>
+        <a-empty v-else-if="historyPlans.length === 0" :description="t('home.history.empty')" />
+        <div v-else class="history-list">
+          <button
+            v-for="item in historyPlans"
+            :key="item.plan_id"
+            type="button"
+            class="history-item"
+            @click="openHistoryPlan(item.plan_id)"
+          >
+            <div class="history-item-main">
+              <div class="history-route">
+                <span class="history-city">{{ item.city }}</span>
+                <span class="history-date">{{ item.start_date }} {{ t('common.to') }} {{ item.end_date }}</span>
+              </div>
+              <p class="history-meta">
+                <span>Plan ID: {{ item.plan_id }}</span>
+                <span>{{ item.travel_days }}{{ t('home.travelDaysUnit') }}</span>
+                <span>{{ t('home.history.updatedAt') }} {{ formatHistoryTime(item.updated_at) }}</span>
+              </p>
+              <p v-if="item.overall_suggestions" class="history-summary">{{ item.overall_suggestions }}</p>
+            </div>
+            <span class="history-open">{{ t('home.history.open') }}</span>
+          </button>
+        </div>
+      </div>
+    </section>
   </div>
 </template>
 
@@ -236,9 +278,9 @@ import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { message } from 'ant-design-vue'
-import { generateTripPlan } from '@/services/api'
+import { generateTripPlan, getTripHistory } from '@/services/api'
 import NavBar from '@/components/NavBar.vue'
-import type { TripFormData, TripTaskEvent } from '@/types'
+import type { TripFormData, TripTaskEvent, TripHistoryItem } from '@/types'
 import type { Dayjs } from 'dayjs'
 
 type LandingFormData = Omit<TripFormData, 'start_date' | 'end_date'> & {
@@ -258,6 +300,8 @@ const panelRef = ref<HTMLElement | null>(null)
 const panelHeight = ref<number | string>('auto')
 const fogEnabled = ref(true)
 const planCode = ref('')
+const historyLoading = ref(false)
+const historyPlans = ref<TripHistoryItem[]>([])
 
 const getStageStatusText = (stage: TripTaskEvent['stage']) => {
   if (stage === 'submitted' || stage === 'initializing') return t('home.loading.initializing')
@@ -349,9 +393,36 @@ const scrollToForm = () => {
   }
 }
 
+const formatHistoryTime = (value: string) => {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  return date.toLocaleString()
+}
+
+const openHistoryPlan = (planId: string) => {
+  if (!planId) return
+  sessionStorage.removeItem('tripPlan')
+  sessionStorage.removeItem('graphData')
+  sessionStorage.setItem('planId', planId)
+  router.push({ path: '/result', query: { plan_id: planId } })
+}
+
+const loadHistoryPlans = async () => {
+  historyLoading.value = true
+  try {
+    historyPlans.value = await getTripHistory(8)
+  } catch (error: any) {
+    historyPlans.value = []
+    message.error(error.message || t('home.history.loadFailed'))
+  } finally {
+    historyLoading.value = false
+  }
+}
+
 onMounted(() => {
   onScroll()
   window.addEventListener('scroll', onScroll, { passive: true })
+  void loadHistoryPlans()
 })
 onUnmounted(() => {
   window.removeEventListener('scroll', onScroll)
@@ -495,6 +566,129 @@ const handleSubmit = async () => {
   background-position: center center !important;
   overflow: hidden;
   z-index: 1;
+}
+
+.history-section {
+  position: relative;
+  z-index: 1;
+  padding: 0 24px 72px;
+}
+
+.history-panel {
+  max-width: 1120px;
+  margin: 0 auto;
+  background: rgba(10, 20, 28, 0.74);
+  border: 1px solid rgba(203, 227, 255, 0.12);
+  border-radius: 28px;
+  padding: 24px;
+  box-shadow: 0 28px 60px rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(14px);
+}
+
+.history-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.history-eyebrow {
+  margin: 0 0 6px;
+  color: rgba(203, 227, 255, 0.62);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.history-title {
+  margin: 0;
+  color: #f5fbff;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.history-refresh {
+  padding-inline: 0;
+}
+
+.history-loading {
+  color: rgba(236, 243, 250, 0.78);
+  padding: 12px 4px;
+}
+
+.history-list {
+  display: grid;
+  gap: 14px;
+}
+
+.history-item {
+  width: 100%;
+  border: 1px solid rgba(203, 227, 255, 0.12);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.04);
+  color: inherit;
+  padding: 18px 20px;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  cursor: pointer;
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+
+.history-item:hover {
+  transform: translateY(-1px);
+  border-color: rgba(138, 196, 255, 0.28);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.history-item-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.history-route {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.history-city {
+  color: #f7fbff;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.history-date {
+  color: rgba(236, 243, 250, 0.75);
+  font-size: 14px;
+}
+
+.history-meta {
+  margin: 8px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  color: rgba(203, 227, 255, 0.64);
+  font-size: 13px;
+}
+
+.history-summary {
+  margin: 10px 0 0;
+  color: rgba(236, 243, 250, 0.9);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.history-open {
+  flex: none;
+  color: #8ac4ff;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .landing-header .content-center {
