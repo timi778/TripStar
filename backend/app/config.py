@@ -4,6 +4,7 @@ import os
 import json
 from pathlib import Path
 from typing import List, Dict, Any
+from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings
 from dotenv import load_dotenv
 
@@ -40,9 +41,18 @@ class Settings(BaseSettings):
     xhs_cookie: str = ""
 
     # LLM配置 (从环境变量读取,由HelloAgents管理)
-    openai_api_key: str = ""
-    openai_base_url: str = "https://api.openai.com/v1"
-    openai_model: str = "gpt-4"
+    openai_api_key: str = Field(
+        default="",
+        validation_alias=AliasChoices("OPENAI_API_KEY", "LLM_API_KEY"),
+    )
+    openai_base_url: str = Field(
+        default="https://api.openai.com/v1",
+        validation_alias=AliasChoices("OPENAI_BASE_URL", "LLM_BASE_URL"),
+    )
+    openai_model: str = Field(
+        default="gpt-4",
+        validation_alias=AliasChoices("OPENAI_MODEL", "LLM_MODEL_ID"),
+    )
 
     # 日志配置
     log_level: str = "INFO"

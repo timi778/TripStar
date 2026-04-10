@@ -2,6 +2,7 @@
 
 import json
 import asyncio
+import os
 from typing import Dict, Any, List, Callable, Awaitable, Optional
 from hello_agents import SimpleAgent
 from hello_agents.tools import MCPTool
@@ -189,6 +190,9 @@ class MultiAgentTripPlanner:
                 env={"AMAP_MAPS_API_KEY": settings.vite_amap_web_key},
                 auto_expand=True
             )
+            # 当前 hello_agents 版本不会自动把 MCPTool 标记为 expandable，
+            # 手动开启后才能把 `amap_maps_*` 子工具注册到 Agent。
+            self.amap_tool.expandable = True
 
             # 取消高德景点 Agent,改用原生小红书服务
             # print("  - 创建景点搜索Agent...")
@@ -307,8 +311,18 @@ class MultiAgentTripPlanner:
             # ========== 串行阶段: 步骤4 整合生成 ==========
             print("📋 步骤4: 生成行程计划...")
             await self._emit_progress(progress_callback, "planning", "正在生成旅行计划...", 85)
-            planner_query = self._build_planner_query(request, attraction_response, weather_response, hotel_response)
-            planner_response = await asyncio.to_thread(self.planner_agent.run, planner_query)
+            attraction_context = self._prepare_planner_context("attractions", attraction_response)
+            weather_context = self._prepare_planner_context("weather", weather_response)
+            hotel_context = self._prepare_planner_context("hotels", hotel_response)
+            print(
+                f"🧾 规划上下文长度: 景点={len(attraction_context)} 天气={len(weather_context)} 酒店={len(hotel_context)}"
+            )
+            planner_response = await self._run_planner_with_retry(
+                request,
+                attraction_context,
+                weather_context,
+                hotel_context,
+            )
             print(f"行程规划结果: {planner_response[:300]}...\n")
 
             # 解析最终计划
@@ -339,6 +353,88 @@ class MultiAgentTripPlanner:
         query = f"请使用amap_maps_text_search工具搜索{request.city}的{keywords}相关的景点。\n非常重要：你必须直接输出 `[TOOL_CALL:amap_maps_text_search:keywords={keywords},city={request.city}]`，不要附带任何多余的 JSON 或文字说明！"
         return query
 
+    def _prepare_planner_context(self, category: str, text: str) -> str:
+        """压缩上下文，避免把冗长失败提示和超长文本直接塞给规划模型。"""
+        limits = {
+            "attractions": 2400,
+            "weather": 600,
+            "hotels": 900,
+        }
+        fallbacks = {
+            "attractions": "景点信息有限。请仅基于当前已知热门景点生成稳妥行程，不要虚构偏门景点。",
+            "weather": "天气信息暂未成功获取。请提供室内/室外可替换方案，并提醒用户出发前再次查看实时天气。",
+            "hotels": "酒店检索暂未成功获取。请根据用户住宿偏好与主要景点分布，给出交通便利商圈的住宿建议，并明确属于备选方案。",
+        }
+        failure_markers = (
+            "未找到工具",
+            "工具调用失败",
+            "查询失败",
+            "暂时无法",
+            "Request timed out",
+            "system cpu overloaded",
+        )
+
+        normalized = (text or "").strip()
+        if not normalized:
+            return fallbacks[category]
+
+        if any(marker in normalized for marker in failure_markers):
+            return fallbacks[category]
+
+        if category == "attractions" and normalized.startswith("这是小红书热门精选游记的提取结果"):
+            lines = [line for line in normalized.splitlines() if line.strip()]
+            normalized = "\n".join(lines[:7])
+
+        limit = limits[category]
+        if len(normalized) > limit:
+            normalized = normalized[:limit].rstrip() + "\n...(上下文已截断)"
+
+        return normalized
+
+    async def _run_planner_with_retry(
+        self,
+        request: TripRequest,
+        attractions: str,
+        weather: str,
+        hotels: str,
+    ) -> str:
+        """规划阶段使用更长超时，并在超时后用更精简的上下文再试一次。"""
+        timeout = int(os.getenv("TRIP_PLANNER_TIMEOUT", "180"))
+        max_tokens = int(os.getenv("TRIP_PLANNER_MAX_TOKENS", "2200"))
+        planner_query = self._build_planner_query(request, attractions, weather, hotels)
+
+        try:
+            return await asyncio.to_thread(
+                self.planner_agent.run,
+                planner_query,
+                timeout=timeout,
+                temperature=0.2,
+                max_tokens=max_tokens,
+            )
+        except Exception as exc:
+            err_text = str(exc).lower()
+            if "timeout" not in err_text and "timed out" not in err_text:
+                raise
+
+            print("⚠️  首次行程规划超时，正在使用精简上下文重试一次...")
+            compact_query = self._build_planner_query(
+                request,
+                self._prepare_planner_context("attractions", attractions[:1200]),
+                self._prepare_planner_context("weather", weather[:300]),
+                self._prepare_planner_context("hotels", hotels[:450]),
+            )
+            compact_query += (
+                "\n\n**补充要求:** 如果部分辅助信息不足，请使用保守、常见、可执行的建议补齐，"
+                "但必须输出完整合法的 JSON，不要输出解释性文字。"
+            )
+            return await asyncio.to_thread(
+                self.planner_agent.run,
+                compact_query,
+                timeout=timeout,
+                temperature=0.2,
+                max_tokens=min(max_tokens, 1800),
+            )
+
     def _build_planner_query(self, request: TripRequest, attractions: str, weather: str, hotels: str = "") -> str:
         """构建行程规划查询"""
         query = f"""请根据以下信息生成{request.city}的{request.travel_days}天旅行计划:
@@ -367,6 +463,7 @@ class MultiAgentTripPlanner:
 3. 考虑景点之间的距离和交通方式
 4. 返回完整的JSON格式数据
 5. 景点的经纬度坐标要真实准确
+6. 如果天气或酒店信息不足，请基于保守、通用的旅行建议补齐，但不要输出“无法查询”之类的解释文字
 """
         if request.free_text_input:
             query += f"\n**额外要求:** {request.free_text_input}"
