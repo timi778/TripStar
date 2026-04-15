@@ -58,6 +58,12 @@
       "saved": "Settings saved and applied"
     }
   },
+  "theme": {
+    "toLight": "Switch to light theme",
+    "toDark": "Switch to dark theme",
+    "light": "Light",
+    "dark": "Dark"
+  },
   "home": {
     "heroBadge": "AI Intelligent Itinerary Engine",
     "titleLine": "Unlock Every Possibility",
