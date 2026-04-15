@@ -73,10 +73,6 @@ _RUNTIME_SETTINGS_FILE = Path(__file__).resolve().parent.parent / "runtime_setti
 _RUNTIME_SETTING_KEYS = {
     "vite_amap_web_key",
     "vite_amap_web_js_key",
-    "xhs_cookie",
-    "openai_api_key",
-    "openai_base_url",
-    "openai_model",
 }
 
 
@@ -103,15 +99,7 @@ def _persist_runtime_overrides(overrides: Dict[str, Any]) -> None:
 
 def _sync_env_from_settings() -> None:
     """将运行时配置同步到环境变量，兼容读取 env 的第三方组件。"""
-    if settings.openai_api_key:
-        os.environ["OPENAI_API_KEY"] = settings.openai_api_key
-        os.environ["LLM_API_KEY"] = settings.openai_api_key
-    if settings.openai_base_url:
-        os.environ["OPENAI_BASE_URL"] = settings.openai_base_url
-        os.environ["LLM_BASE_URL"] = settings.openai_base_url
-    if settings.openai_model:
-        os.environ["OPENAI_MODEL"] = settings.openai_model
-        os.environ["LLM_MODEL_ID"] = settings.openai_model
+    return
 
 
 def _apply_runtime_overrides(overrides: Dict[str, Any]) -> None:
@@ -132,14 +120,9 @@ def get_settings() -> Settings:
 
 
 def get_runtime_settings() -> Dict[str, str]:
-    """获取当前运行时配置（供前端设置页读取）。"""
+    """获取当前运行时配置（仅包含可公开字段）。"""
     return {
-        "vite_amap_web_key": settings.vite_amap_web_key or "",
         "vite_amap_web_js_key": settings.vite_amap_web_js_key or "",
-        "xhs_cookie": settings.xhs_cookie or "",
-        "openai_api_key": settings.openai_api_key or "",
-        "openai_base_url": settings.openai_base_url or "",
-        "openai_model": settings.openai_model or "",
     }
 
 
@@ -198,4 +181,3 @@ def print_config():
     print(f"LLM Base URL: {llm_base_url}")
     print(f"LLM Model: {llm_model}")
     print(f"日志级别: {settings.log_level}")
-
