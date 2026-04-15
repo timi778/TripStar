@@ -983,12 +983,8 @@ const prefetchAttractionPhotos = (names: string[], opts?: { delayMs?: number }) 
     await Promise.all(workers)
   }
 
-  const g = globalThis as typeof globalThis & {
-    requestIdleCallback?: (cb: () => void, opts?: { timeout?: number }) => void
-  }
-
-  if (typeof g.requestIdleCallback === 'function') {
-    g.requestIdleCallback(
+  if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+    ;(window as any).requestIdleCallback(
       () => {
         void run()
       },
@@ -998,7 +994,7 @@ const prefetchAttractionPhotos = (names: string[], opts?: { delayMs?: number }) 
   }
 
   const delayMs = Math.max(0, Number(opts?.delayMs ?? 0))
-  g.setTimeout(() => {
+  window.setTimeout(() => {
     void run()
   }, delayMs)
 }
