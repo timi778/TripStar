@@ -9,7 +9,7 @@ import type {
 } from '@/types'
 import { i18n } from '@/i18n'
 
-const ENV_API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
+const ENV_API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ''
 const ENV_AMAP_WEB_JS_KEY = import.meta.env.VITE_AMAP_WEB_JS_KEY ?? ''
 const RUNTIME_API_BASE_STORAGE_KEY = 'tripstar.runtime.api_base_url'
 const RUNTIME_AMAP_WEB_JS_KEY_STORAGE_KEY = 'tripstar.runtime.amap_web_js_key'
@@ -32,7 +32,7 @@ const normalizeBaseUrl = (value: string | null | undefined): string => {
 
 const normalizeText = (value: unknown): string => String(value ?? '').trim()
 
-const DEFAULT_API_BASE_URL = normalizeBaseUrl(ENV_API_BASE_URL) || 'http://localhost:8000'
+const DEFAULT_API_BASE_URL = normalizeBaseUrl(ENV_API_BASE_URL) || (import.meta.env.DEV ? 'http://localhost:8000' : '')
 const DEFAULT_AMAP_WEB_JS_KEY = normalizeText(ENV_AMAP_WEB_JS_KEY)
 
 interface SubmitTripPlanResponse {
@@ -63,6 +63,11 @@ export const getRuntimeApiBaseUrl = (): string => {
     return DEFAULT_API_BASE_URL
   }
   const saved = normalizeBaseUrl(window.localStorage.getItem(RUNTIME_API_BASE_STORAGE_KEY))
+  const isNonLocalhostHost = !['localhost', '127.0.0.1'].includes(window.location.hostname)
+  const isLocalhostBaseUrl = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(saved)
+  if (isNonLocalhostHost && isLocalhostBaseUrl) {
+    return DEFAULT_API_BASE_URL
+  }
   return saved || DEFAULT_API_BASE_URL
 }
 
@@ -90,7 +95,11 @@ export const setRuntimeMapJsKey = (value: string): string => {
   return normalized
 }
 
-const getWsBaseUrl = (): string => getRuntimeApiBaseUrl().replace(/^http/i, 'ws').replace(/\/+$/, '')
+const getWsBaseUrl = (): string => {
+  const runtimeApiBaseUrl = getRuntimeApiBaseUrl()
+  const baseUrl = runtimeApiBaseUrl || (typeof window !== 'undefined' ? window.location.origin : '')
+  return baseUrl.replace(/^http/i, 'ws').replace(/\/+$/, '')
+}
 
 const normalizeBackendRuntimeSettings = (
   data?: Partial<BackendRuntimeSettings>
@@ -123,12 +132,12 @@ const apiClient = axios.create({
 
 // 请求拦截器
 apiClient.interceptors.request.use(
-  (config) => {
+  (config: any) => {
     config.baseURL = getRuntimeApiBaseUrl()
     console.log('发送请求:', config.method?.toUpperCase(), config.url)
     return config
   },
-  (error) => {
+  (error: any) => {
     console.error('请求错误:', error)
     return Promise.reject(error)
   }
@@ -136,11 +145,11 @@ apiClient.interceptors.request.use(
 
 // 响应拦截器
 apiClient.interceptors.response.use(
-  (response) => {
+  (response: any) => {
     console.log('收到响应:', response.status, response.config.url)
     return response
   },
-  (error) => {
+  (error: any) => {
     console.error('响应错误:', error.response?.status, error.message)
     return Promise.reject(error)
   }
@@ -331,4 +340,3 @@ export async function healthCheck(): Promise<any> {
 }
 
 export default apiClient
-
