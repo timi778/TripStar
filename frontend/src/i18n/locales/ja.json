@@ -147,7 +147,6 @@
     }
   },
   "result": {
-    "setNewTrip": "新しい旅程を作成",
     "backHome": "ホームへ戻る",
     "editTrip": "旅程を編集",
     "saveChanges": "変更を保存",

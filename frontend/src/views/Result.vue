@@ -235,7 +235,7 @@
             </div>
           </div>
 
-          <div class="right-map" v-if="activeSection === 'map'">
+          <div class="right-map" v-show="activeSection === 'map'">
             <a-card id="map" :bordered="false" class="map-card section-shellless">
               <div id="amap-container" style="width: 100%; height: 100%"></div>
             </a-card>
@@ -243,7 +243,7 @@
         </div>
 
         <!-- 知识图谱 -->
-        <a-card v-if="activeSection === 'knowledge-graph'" id="knowledge-graph" :bordered="false" class="kg-card section-shellless">
+        <a-card v-show="activeSection === 'knowledge-graph'" id="knowledge-graph" :bordered="false" class="kg-card section-shellless">
           <div id="kg-chart-container" style="width: 100%; height: 600px;"></div>
           <div class="kg-legend">
             <span v-for="cat in graphCategories" :key="cat.name" class="kg-legend-item">
@@ -254,7 +254,7 @@
         </a-card>
 
         <!-- 每日行程:可折叠 -->
-        <a-card v-if="activeSection === 'days'" :bordered="false" class="days-card section-shellless">
+        <a-card v-show="activeSection === 'days'" :bordered="false" class="days-card section-shellless">
           <a-collapse v-model:activeKey="activeDays" accordion>
             <a-collapse-panel
               v-for="(day, index) in tripPlan.days"
@@ -268,30 +268,31 @@
                 </div>
               </template>
 
-              <template v-if="activeDays.includes(index)">
-                <div class="day-info">
-                  <div class="info-row">
-                    <span class="label">{{ t('result.dayDescription') }}</span>
-                    <span class="value">{{ day.description }}</span>
-                  </div>
-                  <div class="info-row">
-                    <span class="label">{{ t('result.dayTransport') }}</span>
-                    <span class="value">{{ day.transportation }}</span>
-                  </div>
-                  <div class="info-row">
-                    <span class="label">{{ t('result.dayAccommodation') }}</span>
-                    <span class="value">{{ day.accommodation }}</span>
-                  </div>
+              <!-- 行程基本信息 -->
+              <div class="day-info">
+                <div class="info-row">
+                  <span class="label">{{ t('result.dayDescription') }}</span>
+                  <span class="value">{{ day.description }}</span>
                 </div>
+                <div class="info-row">
+                  <span class="label">{{ t('result.dayTransport') }}</span>
+                  <span class="value">{{ day.transportation }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="label">{{ t('result.dayAccommodation') }}</span>
+                  <span class="value">{{ day.accommodation }}</span>
+                </div>
+              </div>
 
-                <a-divider orientation="left">{{ t('result.attractionTitle') }}</a-divider>
-                <a-list
-                  :data-source="day.attractions"
-                  :grid="{ gutter: 16, column: 2 }"
-                >
-                  <template #renderItem="{ item, index }">
-                    <a-list-item>
-                      <a-card :title="item.name" size="small" class="attraction-card">
+              <!-- 景点安排 -->
+              <a-divider orientation="left">{{ t('result.attractionTitle') }}</a-divider>
+              <a-list
+                :data-source="day.attractions"
+                :grid="{ gutter: 16, column: 2 }"
+              >
+                <template #renderItem="{ item, index }">
+                  <a-list-item>
+                    <a-card :title="item.name" size="small" class="attraction-card">
                       <!-- 编辑模式下的操作按钮 -->
                       <template #extra v-if="editMode">
                         <a-space>
@@ -319,16 +320,14 @@
                         </a-space>
                       </template>
 
-                        <div class="attraction-image-wrapper">
-                          <img
-                            :src="item.image_url || getAttractionImage(item.name, index)"
-                            :alt="item.name"
-                            class="attraction-image"
-                            loading="lazy"
-                            decoding="async"
-                            fetchpriority="low"
-                            @error="handleImageError"
-                          />
+                      <!-- 景点图片 -->
+                      <div class="attraction-image-wrapper">
+                        <img
+                          :src="item.image_url || getAttractionImage(item.name, index)"
+                          :alt="item.name"
+                          class="attraction-image"
+                          @error="handleImageError"
+                        />
                         <div class="attraction-badge">
                           <span class="badge-number">{{ index + 1 }}</span>
                         </div>
@@ -361,13 +360,14 @@
                           <span v-if="item.reservation_tips" class="reservation-tips">{{ item.reservation_tips }}</span>
                         </div>
                       </div>
-                      </a-card>
-                    </a-list-item>
-                  </template>
-                </a-list>
+                    </a-card>
+                  </a-list-item>
+                </template>
+              </a-list>
 
-                <a-divider v-if="day.hotel" orientation="left">{{ t('result.hotelTitle') }}</a-divider>
-                <a-card v-if="day.hotel" size="small" class="hotel-card">
+              <!-- 酒店推荐 -->
+              <a-divider v-if="day.hotel" orientation="left">{{ t('result.hotelTitle') }}</a-divider>
+              <a-card v-if="day.hotel" size="small" class="hotel-card">
                 <template #title>
                   <span class="hotel-title">{{ day.hotel.name }}</span>
                 </template>
@@ -380,18 +380,18 @@
                 </a-descriptions>
               </a-card>
 
-                <a-divider orientation="left">{{ t('result.mealsTitle') }}</a-divider>
-                <a-descriptions :column="1" bordered size="small">
-                  <a-descriptions-item
-                    v-for="meal in day.meals"
-                    :key="meal.type"
-                    :label="getMealLabel(meal.type)"
-                  >
-                    {{ meal.name }}
-                    <span v-if="meal.description"> - {{ meal.description }}</span>
-                  </a-descriptions-item>
-                </a-descriptions>
-              </template>
+              <!-- 餐饮安排 -->
+              <a-divider orientation="left">{{ t('result.mealsTitle') }}</a-divider>
+              <a-descriptions :column="1" bordered size="small">
+                <a-descriptions-item
+                  v-for="meal in day.meals"
+                  :key="meal.type"
+                  :label="getMealLabel(meal.type)"
+                >
+                  {{ meal.name }}
+                  <span v-if="meal.description"> - {{ meal.description }}</span>
+                </a-descriptions-item>
+              </a-descriptions>
             </a-collapse-panel>
           </a-collapse>
         </a-card>
@@ -900,105 +900,6 @@ const graphCategories = ref<GraphCategory[]>([])
 let kgChart: echarts.ECharts | null = null
 let kgResizeHandler: (() => void) | null = null
 
-const placeholderImageCache = new Map<string, string>()
-const attractionPhotoInFlight = new Map<string, Promise<void>>()
-let attractionPhotoPatch: Record<string, string> = {}
-let attractionPhotoFlushHandle: number | null = null
-
-const flushAttractionPhotoPatch = () => {
-  if (attractionPhotoFlushHandle != null) {
-    window.clearTimeout(attractionPhotoFlushHandle)
-  }
-  attractionPhotoFlushHandle = null
-  if (Object.keys(attractionPhotoPatch).length === 0) return
-  attractionPhotos.value = {
-    ...attractionPhotos.value,
-    ...attractionPhotoPatch,
-  }
-  attractionPhotoPatch = {}
-}
-
-const scheduleAttractionPhotoFlush = () => {
-  if (attractionPhotoFlushHandle != null) return
-  attractionPhotoFlushHandle = window.setTimeout(flushAttractionPhotoPatch, 0)
-}
-
-const fetchAttractionPhoto = async (name: string, city: string) => {
-  if (!name) return
-  if (attractionPhotos.value[name]) return
-
-  const existing = attractionPhotoInFlight.get(name)
-  if (existing) {
-    await existing
-    return
-  }
-
-  const apiBase = getRuntimeApiBaseUrl()
-  const task = (async () => {
-    try {
-      const response = await fetch(
-        `${apiBase}/api/poi/photo?name=${encodeURIComponent(name)}&city=${encodeURIComponent(city)}`
-      )
-      const data = await response.json()
-      const url = data?.success ? data?.data?.photo_url : ''
-      if (url) {
-        attractionPhotoPatch[name] = url
-        scheduleAttractionPhotoFlush()
-      }
-    } catch {
-      // ignore
-    } finally {
-      attractionPhotoInFlight.delete(name)
-    }
-  })()
-
-  attractionPhotoInFlight.set(name, task)
-  await task
-}
-
-const prefetchAttractionPhotos = (names: string[], opts?: { delayMs?: number }) => {
-  if (!tripPlan.value) return
-
-  const city = tripPlan.value.city
-  const unique = Array.from(new Set(names.filter(Boolean))).filter((name) => !attractionPhotos.value[name])
-  if (unique.length === 0) return
-
-  const run = async () => {
-    const concurrencyLimit = 4
-    let currentIndex = 0
-
-    const worker = async () => {
-      while (currentIndex < unique.length) {
-        const index = currentIndex
-        currentIndex += 1
-        const name = unique[index]
-        await fetchAttractionPhoto(name, city)
-      }
-    }
-
-    const workers = Array.from(
-      { length: Math.min(concurrencyLimit, unique.length) },
-      () => worker()
-    )
-    await Promise.all(workers)
-  }
-
-  if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-    ;(window as any).requestIdleCallback(
-      () => {
-        void run()
-      },
-      { timeout: 1200 }
-    )
-    return
-  }
-
-  const delayMs = Math.max(0, Number(opts?.delayMs ?? 0))
-  window.setTimeout(() => {
-    void run()
-  }, delayMs)
-}
-
 const applyTripPlanPayload = async (payload: {
   plan: TripPlan
   graph?: KnowledgeGraphData | null
@@ -1024,12 +925,7 @@ const applyTripPlanPayload = async (payload: {
     sessionStorage.removeItem('graphData')
   }
 
-  const initialNames = [
-    ...(payload.plan.days[0]?.attractions?.map((a) => a.name) ?? []),
-    ...(payload.plan.days[1]?.attractions?.map((a) => a.name) ?? []),
-  ].slice(0, 18)
-  prefetchAttractionPhotos(initialNames, { delayMs: 0 })
-
+  await loadAttractionPhotos()
   if (activeSection.value === 'map') await ensureMapReady()
   if (activeSection.value === 'knowledge-graph') await ensureGraphReady()
   if (activeSection.value === 'overview') await initOverviewSwiper()
@@ -1351,13 +1247,6 @@ watch(activeSection, async (section) => {
   if (section === 'map') await ensureMapReady()
   if (section === 'knowledge-graph') await ensureGraphReady()
   if (section === 'overview') await initOverviewSwiper()
-  if (section === 'days') {
-    const dayIndex = activeDays.value[0] ?? 0
-    const day = tripPlan.value.days?.[dayIndex]
-    if (day?.attractions?.length) {
-      prefetchAttractionPhotos(day.attractions.map((a) => a.name), { delayMs: 120 })
-    }
-  }
 })
 
 watch(
@@ -1377,29 +1266,10 @@ watch(
   { immediate: true }
 )
 
-watch(
-  activeDays,
-  (keys) => {
-    if (!tripPlan.value) return
-    const dayIndex = keys?.[0] ?? 0
-    const day = tripPlan.value.days?.[dayIndex]
-    if (!day?.attractions?.length) return
-
-    const names = day.attractions.map((a) => a.name)
-    const nextDay = tripPlan.value.days?.[dayIndex + 1]
-    if (nextDay?.attractions?.length) {
-      names.push(...nextDay.attractions.map((a) => a.name))
-    }
-    prefetchAttractionPhotos(names, { delayMs: 120 })
-  },
-  { deep: true }
-)
-
 onUnmounted(() => {
   if (typeof window !== 'undefined') {
     window.removeEventListener(RUNTIME_SETTINGS_UPDATED_EVENT, handleRuntimeSettingsUpdated)
   }
-  flushAttractionPhotoPatch()
   destroyOverviewSwiper()
   if (map) {
     map.destroy()
@@ -1897,6 +1767,50 @@ const restoreBudgetItem = (pendingItem: BudgetRestoreItem) => {
   message.success(t('result.messages.budgetItemRestored'))
 }
 
+// 加载所有景点图片
+const loadAttractionPhotos = async () => {
+  if (!tripPlan.value) return
+
+  const apiBase = getRuntimeApiBaseUrl()
+  const city = tripPlan.value.city
+  const uniqueNames = Array.from(
+    new Set(
+      tripPlan.value.days.flatMap((day) => day.attractions.map((attraction) => attraction.name))
+    )
+  ).filter((name) => name && !attractionPhotos.value[name])
+
+  if (uniqueNames.length === 0) return
+
+  const concurrencyLimit = 4
+  let currentIndex = 0
+
+  const loadNextPhoto = async () => {
+    while (currentIndex < uniqueNames.length) {
+      const index = currentIndex
+      currentIndex += 1
+      const name = uniqueNames[index]
+
+      try {
+        const response = await fetch(
+          `${apiBase}/api/poi/photo?name=${encodeURIComponent(name)}&city=${encodeURIComponent(city)}`
+        )
+        const data = await response.json()
+        if (data.success && data.data.photo_url) {
+          attractionPhotos.value[name] = data.data.photo_url
+        }
+      } catch (err) {
+        console.error(`获取${name}图片失败:`, err)
+      }
+    }
+  }
+
+  const workers = Array.from(
+    { length: Math.min(concurrencyLimit, uniqueNames.length) },
+    () => loadNextPhoto()
+  )
+  await Promise.all(workers)
+}
+
 // 获取景点图片
 const getAttractionImage = (name: string, _index: number): string => {
   // 如果已加载真实图片,返回真实图片
@@ -1904,9 +1818,7 @@ const getAttractionImage = (name: string, _index: number): string => {
     return attractionPhotos.value[name]
   }
 
-  const cached = placeholderImageCache.get(name)
-  if (cached) return cached
-
+  // 返回一个统一的深色占位图
   const bg = '#1a262f'
   const textColor = 'rgba(255,255,255,0.4)'
 
@@ -1915,9 +1827,7 @@ const getAttractionImage = (name: string, _index: number): string => {
     <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="24" font-weight="bold" fill="${textColor}">${name}</text>
   </svg>`
 
-  const url = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svg)))}`
-  placeholderImageCache.set(name, url)
-  return url
+  return `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svg)))}`
 }
 
 // 图片加载失败时的处理
