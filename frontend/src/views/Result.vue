@@ -32,6 +32,10 @@
 
           <div class="top-switch-actions">
             <a-space size="middle" wrap>
+              <a-button type="primary" danger @click="goBack" class="set-new-trip-btn">
+                {{ t('result.setNewTrip') }}
+              </a-button>
+
               <a-button v-if="!editMode" @click="toggleEditMode" type="default">
                 {{ t('result.editTrip') }}
               </a-button>
@@ -2674,6 +2678,20 @@ const drawRoutes = async (AMap: any, attractions: any[]): Promise<any[]> => {
   backdrop-filter: blur(18px);
   box-shadow: 0 24px 80px rgba(4, 11, 18, 0.52);
   padding: 20px;
+}
+
+.set-new-trip-btn {
+  border-radius: 20px;
+  background: linear-gradient(135deg, #f74d4d, #e02f2f);
+  border: none;
+  font-weight: 600;
+  padding: 0 20px;
+  box-shadow: 0 4px 12px rgba(247, 77, 77, 0.3);
+}
+
+.set-new-trip-btn:hover {
+  background: linear-gradient(135deg, #ff5e5e, #e83a3a);
+  box-shadow: 0 6px 16px rgba(247, 77, 77, 0.4);
 }
 
 .top-switch-nav {

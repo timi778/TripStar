@@ -69,7 +69,7 @@
     "titleLine": "探索世界的每一种可能",
     "heroDesc": "告诉我你的目的地与偏好，AI 将为你定制一份独一无二的旅程方案",
     "nav": {
-      "cta": "开始定制",
+      "cta": "定制行程",
       "fogOn": "雾气开启",
       "fogOff": "雾气关闭"
     },
@@ -147,6 +147,7 @@
     }
   },
   "result": {
+    "setNewTrip": "设置新行程",
     "backHome": "返回首页",
     "editTrip": "编辑行程",
     "saveChanges": "保存修改",

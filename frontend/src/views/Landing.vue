@@ -15,6 +15,11 @@
               </h1>
             </div>
             <h2 class="presentation-subtitle text-center">{{ t('home.titleLine') }}</h2>
+            <div class="text-center" style="margin-top: 40px;">
+              <button type="button" class="landing-cta-hero" @click="scrollToForm">
+                {{ t('home.nav.cta') }}
+              </button>
+            </div>
           </div>
         </div>
         <div class="moving-clouds" :style="movingCloudsStyle"></div>
@@ -591,6 +596,32 @@ const handleSubmit = async () => {
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 18px;
+}
+
+.landing-cta-hero {
+  display: inline-block;
+  padding: 16px 48px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #f74d4d, #e02f2f);
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(247, 77, 77, 0.4);
+  transition: all 0.3s ease;
+  letter-spacing: 1px;
+}
+
+.landing-cta-hero:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(247, 77, 77, 0.5);
+  background: linear-gradient(135deg, #ff5e5e, #e83a3a);
+}
+
+.landing-cta-hero:active {
+  transform: translateY(1px);
+  box-shadow: 0 4px 16px rgba(247, 77, 77, 0.3);
 }
 
 .history-eyebrow {

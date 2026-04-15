@@ -93,12 +93,6 @@
                 />
               </svg>
             </button>
-          </li>
-          <li class="nav-item">
-            <button type="button" class="btn btn-danger btn-round landing-cta" @click="handleCtaClick">
-              {{ t('home.nav.cta') }}
-            </button>
-          </li>
         </ul>
       </div>
     </div>
