@@ -147,6 +147,7 @@
     }
   },
   "result": {
+    "setNewTrip": "Plan a New Trip",
     "backHome": "Back to Home",
     "editTrip": "Edit Itinerary",
     "saveChanges": "Save Changes",
