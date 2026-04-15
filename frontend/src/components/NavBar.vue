@@ -43,6 +43,11 @@
             </a-select>
           </li>
           <li class="nav-item">
+            <button type="button" class="nav-link landing-nav-btn landing-cta" @click="handleCtaClick">
+              {{ t('home.nav.cta') }}
+            </button>
+          </li>
+          <li class="nav-item">
             <button
               type="button"
               class="nav-link landing-nav-btn theme-toggle-btn"
@@ -93,6 +98,7 @@
                 />
               </svg>
             </button>
+          </li>
         </ul>
       </div>
     </div>
