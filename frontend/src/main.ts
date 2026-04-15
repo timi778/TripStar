@@ -8,31 +8,6 @@ import Landing from './views/Landing.vue'
 import Result from './views/Result.vue'
 import { i18n } from './i18n'
 
-type ThemeMode = 'dark' | 'light'
-const THEME_STORAGE_KEY = 'tripstar.theme'
-
-const applyTheme = (theme: ThemeMode) => {
-  document.documentElement.classList.toggle('theme-light', theme === 'light')
-  document.documentElement.classList.toggle('theme-dark', theme !== 'light')
-  try {
-    window.localStorage.setItem(THEME_STORAGE_KEY, theme)
-  } catch {
-    // ignore
-  }
-}
-
-const getInitialTheme = (): ThemeMode => {
-  try {
-    const saved = window.localStorage.getItem(THEME_STORAGE_KEY)
-    if (saved === 'light' || saved === 'dark') return saved
-  } catch {
-    // ignore
-  }
-  return 'dark'
-}
-
-applyTheme(getInitialTheme())
-
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -56,3 +31,4 @@ app.use(Antd)
 app.use(i18n)
 
 app.mount('#app')
+

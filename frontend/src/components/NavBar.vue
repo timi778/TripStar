@@ -43,58 +43,6 @@
             </a-select>
           </li>
           <li class="nav-item">
-            <button
-              type="button"
-              class="nav-link landing-nav-btn theme-toggle-btn"
-              :title="theme === 'dark' ? t('theme.toLight') : t('theme.toDark')"
-              :aria-label="theme === 'dark' ? t('theme.toLight') : t('theme.toDark')"
-              @click="toggleTheme"
-            >
-              <svg
-                v-if="theme === 'dark'"
-                class="theme-icon"
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12Z"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-                <path d="M12 2v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                <path d="M12 20v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                <path d="M4.93 4.93 6.34 6.34" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                <path d="M17.66 17.66 19.07 19.07" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                <path d="M2 12h2" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                <path d="M20 12h2" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                <path d="M4.93 19.07 6.34 17.66" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                <path d="M17.66 6.34 19.07 4.93" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-              </svg>
-              <svg
-                v-else
-                class="theme-icon"
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M21 13.2A8.5 8.5 0 1 1 10.8 3a6.8 6.8 0 0 0 10.2 10.2Z"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-            </button>
-          </li>
-          <li class="nav-item">
             <button type="button" class="btn btn-danger btn-round landing-cta" @click="handleCtaClick">
               {{ t('home.nav.cta') }}
             </button>
@@ -106,13 +54,9 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { t, locale } = useI18n()
-type ThemeMode = 'dark' | 'light'
-const THEME_STORAGE_KEY = 'tripstar.theme'
-const theme = ref<ThemeMode>('dark')
 
 const emit = defineEmits<{
   (e: 'brand-click'): void
@@ -126,36 +70,6 @@ const handleBrandClick = () => {
 const handleCtaClick = () => {
   emit('cta-click')
 }
-
-const applyTheme = (value: ThemeMode) => {
-  theme.value = value
-  document.documentElement.classList.toggle('theme-light', value === 'light')
-  document.documentElement.classList.toggle('theme-dark', value !== 'light')
-  try {
-    window.localStorage.setItem(THEME_STORAGE_KEY, value)
-  } catch {
-    // ignore
-  }
-}
-
-const readTheme = (): ThemeMode => {
-  if (typeof window === 'undefined') return 'dark'
-  try {
-    const saved = window.localStorage.getItem(THEME_STORAGE_KEY)
-    if (saved === 'light' || saved === 'dark') return saved
-  } catch {
-    // ignore
-  }
-  return document.documentElement.classList.contains('theme-light') ? 'light' : 'dark'
-}
-
-const toggleTheme = () => {
-  applyTheme(theme.value === 'dark' ? 'light' : 'dark')
-}
-
-onMounted(() => {
-  applyTheme(readTheme())
-})
 </script>
 
 <style scoped>
@@ -318,19 +232,6 @@ onMounted(() => {
   border-color: rgba(215, 110, 66, 0.55);
   background: rgba(215, 110, 66, 0.2);
   color: #ffe3d6;
-}
-
-.theme-toggle-btn {
-  height: 34px;
-  width: 34px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 !important;
-}
-
-.theme-icon {
-  display: block;
 }
 
 .landing-lang-item {
